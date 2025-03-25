@@ -1,31 +1,53 @@
+// app/layout.tsx
 import "./globals.css";
 import TopNav from "@/components/Navbar/TopNav/TopNav";
-import Footer from "@/components/Footer/index";
-import { ThemeProvider } from "../utils/ThemeProvider";
-import { Metadata } from "next";
+import Footer from "@/components/Footer";
+import { ThemeProvider } from "@/utils/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Make It Look",
+  title: {
+    default: "Your Site Name",
+    template: "%s | Your Site Name",
+  },
+  description: "A modern, SEO-ready Next.js template with theme support.",
+  keywords: ["Next.js", "Template", "SEO", "Dark mode", "Design System"],
+  metadataBase: new URL("https://yoursite.com"), // Replace with your actual domain
+  openGraph: {
+    title: "Your Site Name",
+    description: "A modern, SEO-ready Next.js template with theme support.",
+    url: "https://yoursite.com",
+    siteName: "Your Site Name",
+    images: [
+      {
+        url: "/images/og-image.jpg", // Replace with your Open Graph image
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: "en_GB",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Your Site Name",
+    description: "A modern, SEO-ready Next.js template with theme support.",
+    images: ["/images/og-image.jpg"],
+  },
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/images/favicon-16x16.png",
-    apple: "/images/apple-touch-icon.png",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
     other: {
       rel: "icon",
       type: "image/png",
       sizes: "192x192",
-      url: "/images/android-chrome-192x192.png",
+      url: "/android-chrome-192x192.png",
     },
   },
 };
-
-const navItems = [
-  { name: "Product", href: "/product" },
-  { name: "Features", href: "/features" },
-  { name: "Pricing", href: "/pricing" },
-];
 
 export default function RootLayout({
   children,
@@ -33,11 +55,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+        />
+        <link rel="canonical" href="https://yoursite.com" />
+
+        {/* Structured Data: Edit as needed */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Your Site Name",
+              url: "https://yoursite.com",
+              logo: "https://yoursite.com/logo.png", // Optional: Add logo path
+            }),
+          }}
         />
       </head>
       <body>

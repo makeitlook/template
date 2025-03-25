@@ -3,7 +3,6 @@
 import React from "react";
 import { motion, Variant, Variants } from "framer-motion";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { HeroHighlight, Highlight } from "../HeroHighlight/HeroHighlight";
 import { AnimatedBackground } from "../AnimatedBackground/AnimatedBackground";
 
@@ -61,14 +60,7 @@ const Banner: React.FC = () => {
           transition={{ duration: 0.4, delay: 1.3 }}
           className="mt-10 flex items-center justify-center gap-x-6"
         >
-          <Link href="#contact-section">
-            <Button
-              variant="outline"
-              className="font-semibold py-4 px-16 shadow-lg"
-            >
-              Let&#39;s Talk
-            </Button>
-          </Link>
+          <Link href="#contact-section"></Link>
         </motion.p>
       </HeroHighlight>
     </div>

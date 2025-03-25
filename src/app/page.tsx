@@ -1,3 +1,4 @@
+import ContactForm from "@/components/ContactForm/ContactForm";
 import PageLayout from "@/components/Layouts/PageLayout";
 
 export default function Home() {

@@ -47,7 +47,7 @@ const Navbar = () => {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-md tracking-wide text-ternary-dark hover:text-text-primary transition-colors font-medium"
+                className="text-md tracking-wide text-ternary-dark hover:text-text-primary transition-colors"
               >
                 {item.label}
               </Link>
