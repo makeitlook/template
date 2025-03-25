@@ -3,7 +3,7 @@ const colors = require("tailwindcss/colors");
 const defaultTheme = require("tailwindcss/defaultTheme");
 const themeSwapper = require("tailwindcss-theme-swapper");
 const { flatten } = require("lodash");
-const themes = require("./app/themes");
+const themes = require("./themes");
 
 const svgToDataUri = require("mini-svg-data-uri");
 const {
