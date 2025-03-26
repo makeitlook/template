@@ -130,14 +130,12 @@ const dark = {
         .toString(),
 
       // Text
-      "text-primary": customColors.white,
-      "text-secondary": tinycolor(customColors.whiteSmoke)
-        .darken(10)
-        .toString(),
-      "text-tertiary": tinycolor(customColors.whiteSmoke).darken(20).toString(),
-      "text-dimmed": tinycolor(customColors.whiteSmoke).darken(30).toString(),
-      "text-disabled": tinycolor(customColors.whiteSmoke).darken(40).toString(),
-      "text-theme": customColors.orange,
+      "text-primary": "#ffffff",
+      "text-secondary": colors[neutral]["300"],
+      "text-tertiary": colors[neutral]["400"],
+      "text-dimmed": colors[neutral]["500"],
+      "text-disabled": colors[neutral]["600"],
+      "text-theme": "#e2dde9",
 
       // Divider
       "divider-shadow-heavy": tinycolor(customColors.black)

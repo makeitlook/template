@@ -117,17 +117,13 @@ const light = {
       "helpers-invalid-button-hover": customColors.oxfordBlue,
 
       // Text
-      "text-primary": customColors.black,
-      "text-secondary": customColors.oxfordBlue,
-      "text-clear": customColors.whiteSmoke,
-      "text-tertiary": tinycolor(customColors.oxfordBlue)
-        .lighten(20)
-        .toString(),
-      "text-dimmed": tinycolor(customColors.oxfordBlue).lighten(30).toString(),
-      "text-disabled": tinycolor(customColors.oxfordBlue)
-        .lighten(40)
-        .toString(),
-      "text-theme": customColors.oxfordBlue,
+      "text-primary": colors[neutral]["900"],
+      "text-secondary": colors[neutral]["700"],
+      "text-clear": colors[neutral]["50"],
+      "text-tertiary": colors[neutral]["500"],
+      "text-dimmed": colors[neutral]["400"],
+      "text-disabled": colors[neutral]["300"],
+      "text-theme": "#6b5988",
       "text-signout": colors[error]["500"],
 
       // Dividers
