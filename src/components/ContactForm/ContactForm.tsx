@@ -3,11 +3,18 @@ import React, { useState } from "react";
 import PrivacyPolicyModal from "@/components/Modal/PrivacyPolicyModal";
 
 interface Web3FormsProps {
+  title: string;
+  description: string;
   accessKey: string;
   onSubmit?: (formData: Record<string, string>) => void;
 }
 
-const Web3ContactForm: React.FC<Web3FormsProps> = ({ accessKey, onSubmit }) => {
+const Web3ContactForm: React.FC<Web3FormsProps> = ({
+  accessKey,
+  onSubmit,
+  title,
+  description,
+}) => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -43,20 +50,20 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({ accessKey, onSubmit }) => {
 
   return (
     <>
-      <div className="isolate py-24 sm:py-32">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-balance text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
-            Contact sales
-          </h2>
-          <p className="mt-2 text-lg/8 text-text-secondary">
-            Get in touch with our sales team
-          </p>
-        </div>
+      <div className="isolate">
+        {title && description && (
+          <div className="mx-auto max-w-2xl text-center mb-16 sm:mb-20">
+            <h2 className="text-balance text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+              {title}
+            </h2>
+            <p className="mt-2 text-lg/8 text-text-secondary">{description}</p>
+          </div>
+        )}
         <form
           action="https://api.web3forms.com/submit"
           method="POST"
           onSubmit={handleSubmit}
-          className="mx-auto mt-16 max-w-xl sm:mt-20"
+          className="mx-auto max-w-xl "
         >
           <input type="hidden" name="access_key" value={accessKey} />
 
