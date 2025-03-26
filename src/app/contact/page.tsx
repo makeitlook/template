@@ -9,7 +9,7 @@ import {
 export default function Contact() {
   return (
     <PageLayout title="">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2 px-6 pt-24 sm:pt-32 lg:static lg:px-8 lg:py-48">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2 space-y-12">
         <div className="relative ">
           <div className="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
             <h2 className="text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
