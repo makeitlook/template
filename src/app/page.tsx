@@ -8,7 +8,6 @@ export default function Home() {
         We'd love to hear from you! Drop us a message and let’s create something
         beautiful together.
       </p>
-      <ContactForm />
     </PageLayout>
   );
 }
