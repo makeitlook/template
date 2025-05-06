@@ -1,11 +1,12 @@
 // app/layout.tsx
 import "./globals.css";
-import TopNav from "@/components/Navbar/TopNav/TopNav";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/utils/ThemeProvider";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
+import { mainNavigation } from "@/config/navigation";
+import ClientNav from "@/components/ClientNav/ClientNav";
 
 export const metadata: Metadata = {
   title: {
@@ -80,7 +81,8 @@ export default function RootLayout({
       <body>
         <ThemeProvider defaultTheme="system">
           <div className="flex flex-col min-h-screen overflow-x-hidden">
-            <TopNav />
+            {/* Use ClientNav component that will handle the hook */}
+            <ClientNav />
             <main className="flex-1 h-full overflow-y-auto">{children}</main>
             <Analytics />
             <SpeedInsights />

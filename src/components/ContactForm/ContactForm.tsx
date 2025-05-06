@@ -1,31 +1,59 @@
 "use client";
 import React, { useState } from "react";
 import PrivacyPolicyModal from "@/components/Modal/PrivacyPolicyModal";
+import { motion } from "framer-motion";
+import Modal from "@/components/Modal/Modal";
 
-interface Web3FormsProps {
-  title: string;
-  description: string;
+// Toast Component
+const Toast = ({
+  message,
+  type,
+}: {
+  message: string;
+  type: "success" | "error";
+}) => {
+  return (
+    <div
+      className={`fixed top-4 left-1/2 transform -translate-x-1/2 w-80 px-4 py-2 rounded-md text-text-clear ${
+        type === "success" ? "bg-green-500" : "bg-red-500"
+      }`}
+      style={{ zIndex: 9999 }}
+    >
+      <p>{message}</p>
+    </div>
+  );
+};
+
+interface FormsProps {
+  title?: string;
+  description?: string;
   accessKey: string;
   onSubmit?: (formData: Record<string, string>) => void;
 }
 
-const Web3ContactForm: React.FC<Web3FormsProps> = ({
+const ContactForm: React.FC<FormsProps> = ({
   accessKey,
   onSubmit,
   title,
   description,
 }) => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    company: "",
+    name: "", // Changed from firstName + lastName to match web3forms expectation
     email: "",
-    phoneNumber: "",
+    phone: "", // Changed from phoneNumber to match common form field names
+    company: "",
     message: "",
   });
 
   const [agreed, setAgreed] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [isPrivacyAgreedModalOpen, setIsPrivacyAgreedModalOpen] =
+    useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -37,15 +65,71 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!agreed) {
-      alert("Please agree to the privacy policy");
+      setIsPrivacyAgreedModalOpen(true);
       return;
     }
 
-    onSubmit?.(formData);
+    try {
+      setIsSubmitting(true);
+
+      // Create FormData object for proper submission
+      const submitData = new FormData();
+      submitData.append("access_key", accessKey);
+
+      // Add all form fields to FormData
+      Object.entries(formData).forEach(([key, value]) => {
+        submitData.append(key, value);
+      });
+
+      // Add honeypot field to prevent spam (recommended by web3forms)
+      submitData.append("botcheck", "");
+
+      // You can add a custom subject
+      submitData.append("subject", "New Enquiry");
+
+      // Optional: add a redirect URL after successful submission
+      // submitData.append("redirect", "https://yourwebsite.com/thanks");
+
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: submitData,
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Open the success modal and clear the form if successful
+        setIsSuccessModalOpen(true);
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          company: "",
+          message: "",
+        });
+        setShowToast(true);
+        setToastMessage("Form submitted successfully!");
+        setToastType("success");
+      } else {
+        throw new Error(data.message || "Form submission failed");
+      }
+    } catch (error) {
+      // Type narrowing
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "An error occurred during submission.";
+      setShowToast(true);
+      setToastMessage(errorMessage);
+      setToastType("error");
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setShowToast(false), 4000);
+    }
   };
 
   return (
@@ -53,70 +137,56 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
       <div className="isolate">
         {title && description && (
           <div className="mx-auto max-w-2xl text-center mb-16 sm:mb-20">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-text-primary sm:text-5xl">
+            <motion.h2
+              className="text-2xl font-semibold tracking-tight text-text-primary sm:text-5xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               {title}
-            </h2>
-            <p className="mt-2 text-lg/8 text-text-secondary">{description}</p>
+            </motion.h2>
+            <p className="mt-2 text-md text-text-secondary">{description}</p>
           </div>
         )}
-        <form
-          action="https://api.web3forms.com/submit"
-          method="POST"
-          onSubmit={handleSubmit}
-          className="mx-auto max-w-xl "
-        >
+
+        <form onSubmit={handleSubmit} className="mx-auto max-w-xl">
           <input type="hidden" name="access_key" value={accessKey} />
+          {/* Honeypot field to prevent spam */}
+          <input
+            type="checkbox"
+            name="botcheck"
+            className="hidden"
+            style={{ display: "none" }}
+          />
 
-          <div className="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-            {/* First Name */}
-            <div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            {/* Name Field (Combined) */}
+            <div className="sm:col-span-2">
               <label
-                htmlFor="first-name"
-                className="block text-sm/6 font-semibold text-text-primary"
+                htmlFor="name"
+                className="block text-sm font-semibold text-text-primary"
               >
-                First name
+                Name*
               </label>
               <div className="mt-2.5">
                 <input
-                  id="first-name"
-                  name="firstName"
+                  id="name"
+                  name="name"
                   type="text"
-                  placeholder="First Name"
-                  value={formData.firstName}
+                  placeholder="Your Name"
+                  value={formData.name}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
+                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-sm text-text-primary outline outline-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main transition-all duration-300"
                 />
               </div>
             </div>
 
-            {/* Last Name */}
-            <div>
-              <label
-                htmlFor="last-name"
-                className="block text-sm/6 font-semibold text-text-primary"
-              >
-                Last name
-              </label>
-              <div className="mt-2.5">
-                <input
-                  id="last-name"
-                  name="lastName"
-                  type="text"
-                  placeholder="Last Name"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  required
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
-                />
-              </div>
-            </div>
-
-            {/* Company */}
+            {/* Company (Optional) */}
             <div className="sm:col-span-2">
               <label
                 htmlFor="company"
-                className="block text-sm/6 font-semibold text-text-primary"
+                className="block text-sm font-semibold text-text-primary"
               >
                 Company
               </label>
@@ -125,10 +195,10 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
                   id="company"
                   name="company"
                   type="text"
-                  placeholder="Company Name"
+                  placeholder="Your Company (Optional)"
                   value={formData.company}
                   onChange={handleChange}
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
+                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-sm text-text-primary outline outline-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main transition-all duration-300"
                 />
               </div>
             </div>
@@ -137,9 +207,9 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
             <div className="sm:col-span-2">
               <label
                 htmlFor="email"
-                className="block text-sm/6 font-semibold text-text-primary"
+                className="block text-sm font-semibold text-text-primary"
               >
-                Email
+                Email*
               </label>
               <div className="mt-2.5">
                 <input
@@ -150,7 +220,7 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
                   value={formData.email}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
+                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-sm text-text-primary outline outline-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main transition-all duration-300"
                 />
               </div>
             </div>
@@ -158,20 +228,21 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
             {/* Phone Number */}
             <div className="sm:col-span-2">
               <label
-                htmlFor="phone-number"
-                className="block text-sm/6 font-semibold text-text-primary"
+                htmlFor="phone"
+                className="block text-sm font-semibold text-text-primary"
               >
-                Phone number
+                Phone number*
               </label>
               <div className="mt-2.5">
                 <input
-                  id="phone-number"
-                  name="phoneNumber"
+                  id="phone"
+                  name="phone" // Changed to match common form field names
                   type="tel"
                   placeholder="07911 123456"
-                  value={formData.phoneNumber}
+                  required
+                  value={formData.phone}
                   onChange={handleChange}
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
+                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-sm text-text-primary outline outline-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main transition-all duration-300"
                 />
               </div>
             </div>
@@ -180,9 +251,9 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
             <div className="sm:col-span-2">
               <label
                 htmlFor="message"
-                className="block text-sm/6 font-semibold text-text-primary"
+                className="block text-sm font-semibold text-text-primary"
               >
-                Message
+                Message*
               </label>
               <div className="mt-2.5">
                 <textarea
@@ -193,11 +264,12 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
                   value={formData.message}
                   onChange={handleChange}
                   required
-                  className="block w-full rounded-md bg-card-background px-3.5 py-2 text-base text-text-primary outline outline-1 -outline-offset-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main"
+                  className="block w-full text-sm rounded-md bg-card-background px-3.5 py-2 text-text-primary outline outline-1 outline-border-main placeholder:text-text-dimmed focus:outline-2 focus:outline-elements-primary-main transition-all duration-300"
                 />
               </div>
             </div>
 
+            {/* Privacy Policy Agreement */}
             <div className="flex gap-x-4 sm:col-span-2">
               <div className="flex h-6 items-center">
                 <input
@@ -205,18 +277,18 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
                   id="privacy-policy"
                   checked={agreed}
                   onChange={() => setAgreed(!agreed)}
-                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                  className="rounded text-elements-primary-main focus:ring-elements-primary-shadow"
                 />
               </div>
               <label
                 htmlFor="privacy-policy"
-                className="text-sm/6 text-gray-600"
+                className="text-sm text-text-tertiary"
               >
                 By selecting this, you agree to our{" "}
                 <button
                   type="button"
                   onClick={() => setIsPrivacyModalOpen(true)}
-                  className="font-semibold text-indigo-600 hover:underline"
+                  className="font-semibold text-elements-primary-main hover:underline"
                 >
                   privacy&nbsp;policy
                 </button>
@@ -229,9 +301,10 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
           <div className="mt-10">
             <button
               type="submit"
-              className="block w-full rounded-md bg-elements-primary-main px-3.5 py-2.5 text-center text-sm font-semibold text-elements-primary-contrastText shadow-sm hover:bg-elements-primary-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-elements-primary-main"
+              disabled={isSubmitting}
+              className="block w-full rounded-md bg-elements-primary-main px-3.5 py-2.5 text-center text-sm font-semibold text-elements-primary-contrastText shadow-sm hover:bg-elements-primary-shadow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-elements-primary-main transition-all duration-300 disabled:opacity-70"
             >
-              Let's talk
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
@@ -242,22 +315,29 @@ const Web3ContactForm: React.FC<Web3FormsProps> = ({
         isOpen={isPrivacyModalOpen}
         onClose={() => setIsPrivacyModalOpen(false)}
       />
+
+      <Modal
+        isOpen={isPrivacyAgreedModalOpen}
+        onClose={() => setIsPrivacyAgreedModalOpen(false)}
+        title="Privacy Policy Agreement"
+      >
+        You must agree to the privacy policy to proceed. Please review and
+        accept the terms to continue.
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        title="Submission Successful"
+      >
+        Thank you for contacting us! We will get back to you shortly.
+      </Modal>
+
+      {/* Toast */}
+      {showToast && <Toast message={toastMessage} type={toastType} />}
     </>
   );
 };
 
-export default Web3ContactForm;
-
-// Optional wrapper for usage
-export function ContactPage() {
-  const handleSubmit = (formData: Record<string, string>) => {
-    console.log("Form submitted:", formData);
-  };
-
-  return (
-    <Web3ContactForm
-      accessKey="your-web3forms-access-key"
-      onSubmit={handleSubmit}
-    />
-  );
-}
+export default ContactForm;
