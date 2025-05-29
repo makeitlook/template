@@ -679,11 +679,12 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                 transition={{ duration: 0.3 }}
                 className={classNames(
                   mobileFullScreen
-                    ? "fixed inset-0 z-40 flex flex-col"
+                    ? // pin left+right, span from just below header (h-20) down
+                      "fixed inset-x-0 top-20 bottom-0 z-40 flex flex-col"
                     : "sm:hidden",
                   styles.mobileMenu.container
                 )}
-                style={mobileFullScreen ? { paddingTop: "6rem" } : {}}
+                // no inline paddingTop needed any more
               >
                 {/* Mobile Nav Items */}
                 <div

@@ -44,13 +44,19 @@ export default function ClientNav() {
         showNavigation,
       }}
       variant="glass"
-      glassMorphism={true}
+      glassMorphism={false}
       showThemeSwitcher={true}
       logo={{
         light: "/images/logo-light.svg",
         dark: "/images/logo-dark.svg",
         width: 130,
         height: 40,
+      }}
+      mobileFullScreen={false}
+      cta={{
+        show: false,
+        text: "Get in Touch",
+        href: "/contact",
       }}
     />
   );
