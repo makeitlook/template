@@ -74,7 +74,7 @@ export default function Contact() {
             </div>
           </div>
           <div className="bg-neutral-dimmed p-4 rounded-md">
-            <Web3ContactForm />
+            {/* <Web3ContactForm /> */}
           </div>
         </div>
       </PageLayout>

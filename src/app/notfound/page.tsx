@@ -25,7 +25,7 @@ export default function NotFound() {
           404 - Page Not Found
         </h1>
         <p className="text-text-secondary mt-2">
-          Oops! We couldn't find the page you're looking for.
+          Oops! We couldn`&apos;`t find the page you`&apos;`re looking for.
         </p>
         <Link
           href="/"

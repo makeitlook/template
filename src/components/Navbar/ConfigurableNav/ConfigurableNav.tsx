@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { LuMenu, LuX, LuChevronDown, LuPhone } from "react-icons/lu";
 import Link from "next/link";
 import Image from "next/image";
@@ -81,7 +81,9 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
   const { resolvedTheme, setTheme } = useTheme();
 
   // Get navigation items from either navigationConfig or items prop
-  const navigationItems = navigationConfig?.navigationItems || items || [];
+  const navigationItems = useMemo(() => {
+    return navigationConfig?.navigationItems || items || [];
+  }, [navigationConfig?.navigationItems, items]);
   const showNavigation = navigationConfig?.showNavigation !== false;
 
   const pathname = usePathname();

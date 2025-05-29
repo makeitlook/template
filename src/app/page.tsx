@@ -6,8 +6,8 @@ export default function Home() {
     <PageLayout title="Home">
       <section id="home">
         <AnimatedDiv>
-          We'd love to hear from you! Drop us a message and let’s create
-          something beautiful together.
+          We`&apos;`d love to hear from you! Drop us a message and let`&apos;`s
+          create something beautiful together.
         </AnimatedDiv>
       </section>
     </PageLayout>
