@@ -50,8 +50,8 @@ export interface NavProps {
 }
 
 // Helper function for class conditionals
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(" ");
+function classNames(...classes: (string | false | undefined)[]): string {
+  return classes.filter((c): c is string => Boolean(c)).join(" ");
 }
 
 // Icon components
@@ -122,7 +122,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
       wrapper: "",
       header: "",
       navItem: {
-        base: "inline-flex items-center px-1 text-sm font-medium",
+        base: "inline-flex items-center px-1 text-md font-medium",
         active: "",
         inactive: "",
         disabled: "opacity-50 cursor-not-allowed",
@@ -135,7 +135,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
         container: "",
         backdrop: "",
         item: {
-          base: "block py-2 pl-3 pr-4 text-sm font-medium",
+          base: "flex flex-col py-2 text-md font-medium",
           active: "",
           inactive: "",
         },
@@ -148,11 +148,21 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
         styles.container = glassMorphism
           ? "backdrop-blur-md bg-card-background/70 border-b border-border-dimmed shadow-lg rounded-xl mx-auto px-6"
           : "backdrop-blur-md bg-card-background/70 border-b border-border-dimmed shadow-lg rounded-xl mx-auto px-6";
-        styles.navItem.active =
-          "border-elements-secondary-main text-text-primary";
-        styles.navItem.inactive =
-          "border-transparent text-ternary-dark hover:text-text-primary hover:border-elements-secondary-main";
-        styles.mobileMenu.container = "bg-card-background/90 rounded-b-xl";
+        styles.mobileMenu.container = "rounded-b-xl";
+        styles.navItem.active = [
+          "border-elements-primary-main",
+          "text-text-primary",
+          "border-b-2",
+        ].join(" ");
+        styles.navItem.inactive = [
+          "border-transparent",
+          "text-text-secondary",
+          "hover:text-text-primary",
+          "transition-all duration-100 ease-out", // smooth transition
+          "hover:scale-105", // tiny pop
+        ].join(" ");
+        break;
+
         break;
       case "solid":
         styles.container = "bg-elements-primary-shadow";
@@ -273,7 +283,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
-                  className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-neutral-dimmed text-sm leading-6 shadow-lg ring-2 ring-divider-main"
+                  className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-neutral-dimmed-heavy text-sm leading-6 shadow-md ring-2 ring-divider-dimmed"
                 >
                   <div className="p-2">
                     {item.children?.map((subItem, index) => {
@@ -290,7 +300,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                         >
                           <div
                             className={classNames(
-                              "group relative flex gap-x-6 rounded-lg p-4",
+                              "group relative flex gap-x-6 rounded-2xl p-4",
                               subItem.disabled
                                 ? "opacity-50 cursor-not-allowed"
                                 : subItem.current
@@ -359,92 +369,160 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
     );
   };
 
-  // Mobile nav item renderer
-  const renderMobileNavItem = (item: NavItem) => {
+  // Mobile nav item renderer with enhanced animations and styling
+  const renderMobileNavItem = (item: NavItem, index: number) => {
     if (item.disabled) {
       return (
-        <span
+        <motion.div
           key={item.name}
-          className={classNames(
-            styles.mobileMenu.item.base,
-            "border-l-4 border-transparent",
-            styles.navItem.disabled
-          )}
-          aria-disabled="true"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.1 }}
         >
-          {item.name}
-        </span>
+          <span
+            className={classNames(
+              styles.mobileMenu.item.base,
+              "border-l-4 border-transparent",
+              styles.navItem.disabled
+            )}
+            aria-disabled="true"
+          >
+            {item.name}
+          </span>
+        </motion.div>
       );
     }
 
     if (item.children && item.children.length > 0) {
       return (
-        <div key={item.name} className="space-y-1">
+        <motion.div
+          key={item.name}
+          className="space-y-1"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.1 }}
+        >
           <button
             className={classNames(
-              "flex w-full items-center justify-between rounded-md px-4 py-2 text-left text-sm font-medium focus:outline-none",
+              "flex w-full items-center justify-between rounded-lg p-3 text-left text-md font-medium focus:outline-none transition-all duration-200",
+              variant === "glass"
+                ? "hover:bg-neutral/20 active:bg-neutral/30"
+                : "hover:bg-neutral-dimmed active:bg-neutral-shadow",
               dropdownOpen === item.name
-                ? styles.navItem.active
+                ? variant === "glass"
+                  ? "bg-neutral/30 text-text-primary"
+                  : styles.navItem.active
+                : variant === "glass"
+                ? "text-text-secondary"
                 : styles.navItem.inactive
             )}
             onClick={() =>
               setDropdownOpen(dropdownOpen === item.name ? null : item.name)
             }
           >
-            {item.name}
+            <span className="flex items-center">
+              {item.icon && (
+                <item.icon className="mr-3 h-5 w-5 text-text-tertiary" />
+              )}
+              {item.name}
+            </span>
             <motion.div
               animate={{ rotate: dropdownOpen === item.name ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <ChevronIcon className="h-5 w-5" />
+              <ChevronIcon className="h-5 w-5 text-text-tertiary" />
             </motion.div>
           </button>
+
           <AnimatePresence>
             {dropdownOpen === item.name && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="space-y-1"
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="overflow-hidden"
               >
-                {item.children?.map((subItem) => (
-                  <Link
-                    key={subItem.name}
-                    href={subItem.href}
-                    className={classNames(
-                      styles.mobileMenu.item.base,
-                      "border-l-4 pl-5",
-                      subItem.current
-                        ? styles.navItem.active
-                        : styles.navItem.inactive
-                    )}
-                    onClick={closeMenu}
-                  >
-                    {subItem.name}
-                  </Link>
-                ))}
+                <div
+                  className={classNames(
+                    "space-y-1 ml-4 pl-4",
+                    variant === "glass"
+                      ? "border-l-2 border-neutral-dimmed"
+                      : "border-l-2 border-neutral-dimmed"
+                  )}
+                >
+                  {item.children?.map((subItem, subIndex) => (
+                    <motion.div
+                      key={subItem.name}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: subIndex * 0.05 }}
+                    >
+                      <Link
+                        href={subItem.href}
+                        className={classNames(
+                          "group flex items-center rounded-lg p-3 text-sm font-medium transition-all duration-200",
+                          variant === "glass"
+                            ? "hover:bg-neutral/20 active:bg-neutral/30 text-text-secondary hover:text-text-primary"
+                            : "hover:bg-neutral-dimmed active:bg-neutral-shadow",
+                          subItem.current
+                            ? variant === "glass"
+                              ? "bg-neutral/30 text-text-primary"
+                              : styles.navItem.active
+                            : variant === "glass"
+                            ? "text-text-secondary"
+                            : styles.navItem.inactive,
+                          subItem.disabled && "opacity-50 cursor-not-allowed"
+                        )}
+                        onClick={closeMenu}
+                      >
+                        {subItem.icon && (
+                          <subItem.icon className="mr-3 h-4 w-4 text-text-tertiary group-hover:text-text-secondary transition-colors" />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <span>{subItem.name}</span>
+                          </div>
+                          {subItem.description && (
+                            <p className="mt-1 text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
+                              {subItem.description}
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
       );
     }
 
-    // Updated mobile menu item styling for glass variant
+    // Regular mobile menu item with enhanced styling
     if (variant === "glass") {
       return (
         <motion.div
           key={item.name}
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
+          transition={{ duration: 0.3, delay: index * 0.1 }}
         >
           <Link
             href={item.href}
-            className="block text-lg text-ternary-dark hover:text-text-primary transition-colors font-medium py-2"
+            className={classNames(
+              "flex items-center rounded-lg p-3 text-md font-medium transition-all duration-200",
+              "hover:bg-neutral/20 active:bg-neutral/30",
+              item.current
+                ? "bg-neutral/30 text-text-primary border-l-4 border-elements-primary-main"
+                : "text-text-secondary hover:text-text-primary"
+            )}
             onClick={closeMenu}
           >
+            {item.icon && (
+              <item.icon className="mr-3 h-5 w-5 text-text-tertiary" />
+            )}
             {item.name}
           </Link>
         </motion.div>
@@ -452,18 +530,27 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
     }
 
     return (
-      <Link
+      <motion.div
         key={item.name}
-        href={item.href}
-        className={classNames(
-          styles.mobileMenu.item.base,
-          "border-l-4",
-          item.current ? styles.navItem.active : styles.navItem.inactive
-        )}
-        onClick={closeMenu}
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: index * 0.1 }}
       >
-        {item.name}
-      </Link>
+        <Link
+          href={item.href}
+          className={classNames(
+            "flex items-center rounded-lg p-3 text-md font-medium transition-all duration-200 border-l-4",
+            "hover:bg-neutral-dimmed active:bg-neutral-shadow",
+            item.current ? styles.navItem.active : styles.navItem.inactive
+          )}
+          onClick={closeMenu}
+        >
+          {item.icon && (
+            <item.icon className="mr-3 h-5 w-5 text-text-tertiary" />
+          )}
+          {item.name}
+        </Link>
+      </motion.div>
     );
   };
 
@@ -602,7 +689,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                 <div
                   className={
                     variant === "glass"
-                      ? "px-6 py-8 space-y-6"
+                      ? "py-8 space-y-4"
                       : "px-4 py-6 space-y-4"
                   }
                   style={
@@ -611,7 +698,9 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                       : { overflowY: "auto" }
                   }
                 >
-                  {navigationItems.map(renderMobileNavItem)}
+                  {navigationItems.map((item, index) =>
+                    renderMobileNavItem(item, index)
+                  )}
                 </div>
               </motion.div>
             )}
