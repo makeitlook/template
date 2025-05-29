@@ -40,7 +40,7 @@ export function useNavigationConfig(): {
       {
         name: "About",
         sectionId: "about",
-        path: "/about",
+        path: "/notfound",
         current: pathname === "/about",
         icon: LuInfo,
       },

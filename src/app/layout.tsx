@@ -1,12 +1,7 @@
 // app/layout.tsx
 import "./globals.css";
-import Footer from "@/components/Footer";
-import { ThemeProvider } from "@/utils/ThemeProvider";
-import { Analytics } from "@vercel/analytics/react";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Metadata } from "next";
-import { mainNavigation } from "@/config/navigation";
-import ClientNav from "@/components/ClientNav/ClientNav";
+import ClientLayout from "./client-layout";
 
 export const metadata: Metadata = {
   title: {
@@ -57,38 +52,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="scroll-smooth" suppressHydrationWarning>
-      <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
-        />
-        <link rel="canonical" href="https://yoursite.com" />
-
-        {/* Structured Data: Edit as needed */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Your Site Name",
-              url: "https://yoursite.com",
-              logo: "https://yoursite.com/logo.png", // Optional: Add logo path
-            }),
-          }}
-        />
-      </head>
       <body>
-        <ThemeProvider defaultTheme="system">
-          <div className="flex flex-col min-h-screen overflow-x-hidden">
-            {/* Use ClientNav component that will handle the hook */}
-            <ClientNav />
-            <main className="flex-1 h-full overflow-y-auto">{children}</main>
-            <Analytics />
-            <SpeedInsights />
-            <Footer />
-          </div>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
