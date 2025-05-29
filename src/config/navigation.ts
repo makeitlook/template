@@ -1,7 +1,5 @@
-// navigationConfig.ts
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
-import { NavConfig } from "@/components/Navbar/ConfigurableNav/ConfigurableNav";
 import { IconType } from "react-icons";
 import {
   LuHouse,
@@ -11,10 +9,11 @@ import {
   LuPhone,
 } from "react-icons/lu";
 
-// Define navigation items with types
+// Define navigation item structure
 export interface NavigationItem {
   name: string;
-  href: string;
+  sectionId?: string; // For anchor-based single-page nav
+  path?: string; // For route-based multi-page nav
   current: boolean;
   icon?: IconType;
   description?: string;
@@ -22,7 +21,7 @@ export interface NavigationItem {
   disabled?: boolean;
 }
 
-// Create a hook to use navigation configuration
+// Hook-based config (e.g. for dynamic use in app)
 export function useNavigationConfig(): {
   navigationItems: NavigationItem[];
   showNavigation: boolean;
@@ -33,69 +32,64 @@ export function useNavigationConfig(): {
     () => [
       {
         name: "Home",
-        href: "/",
+        sectionId: "home",
+        path: "/",
         current: pathname === "/",
         icon: LuHouse,
-        description: "Learn more about our company",
-        disabled: false,
       },
       {
         name: "About",
-        href: "/about",
+        sectionId: "about",
+        path: "/about",
         current: pathname === "/about",
         icon: LuInfo,
-        description: "Learn more about our company",
-        disabled: false,
       },
       {
         name: "Services",
-        href: "#",
+        sectionId: "services",
+        path: "/services",
         current: pathname.startsWith("/services"),
         icon: LuFile,
-        description: "Explore our service offerings",
-        disabled: false,
-        children: [
-          {
-            name: "Web Development",
-            href: "/services/web-development",
-            current: pathname === "/services/web-development",
-            description: "Custom web development solutions",
-            icon: LuFile,
-            disabled: false,
-          },
-          {
-            name: "App Design",
-            href: "/services/app-design",
-            current: pathname === "/services/app-design",
-            description: "Mobile and web application design",
-            icon: LuFile,
-            disabled: false,
-          },
-          {
-            name: "Consulting",
-            href: "/services/consulting",
-            current: pathname === "/services/consulting",
-            description: "Expert technology consulting",
-            icon: LuFile,
-            disabled: false,
-          },
-        ],
+        // children: [
+        //   {
+        //     name: "Web Development",
+        //     sectionId: "web-development",
+        //     path: "/services/web-development",
+        //     current: pathname === "/services/web-development",
+        //     icon: LuFile,
+        //     description: "Custom web development solutions",
+        //   },
+        //   {
+        //     name: "App Design",
+        //     sectionId: "app-design",
+        //     path: "/services/app-design",
+        //     current: pathname === "/services/app-design",
+        //     icon: LuFile,
+        //     description: "Mobile and web application design",
+        //   },
+        //   {
+        //     name: "Consulting",
+        //     sectionId: "consulting",
+        //     path: "/services/consulting",
+        //     current: pathname === "/services/consulting",
+        //     icon: LuFile,
+        //     description: "Expert technology consulting",
+        //   },
+        // ],
       },
       {
         name: "Schedule",
-        href: "/schedule",
+        sectionId: "schedule",
+        path: "/schedule",
         current: pathname === "/schedule",
         icon: LuCalendarDays,
-        description: "Book a consultation or service",
-        disabled: false,
       },
       {
         name: "Contact",
-        href: "/contact",
+        sectionId: "contact",
+        path: "/contact",
         current: pathname === "/contact",
         icon: LuPhone,
-        description: "Get in touch with us",
-        disabled: false,
       },
     ],
     [pathname]
@@ -107,17 +101,27 @@ export function useNavigationConfig(): {
   };
 }
 
-// Export alternative navigation configurations that can be imported directly
+// Predefined configs for different layout needs
 export const mainNavigation: {
   navigationItems: NavigationItem[];
   showNavigation: boolean;
 } = {
   navigationItems: [
-    { name: "Home", href: "/", current: true },
-    { name: "About", href: "/about", current: false },
-    { name: "Services", href: "/services", current: false },
-    { name: "Schedule", href: "/schedule", current: false },
-    { name: "Contact", href: "/contact", current: false },
+    { name: "Home", sectionId: "home", path: "/", current: true },
+    { name: "About", sectionId: "about", path: "/about", current: false },
+    {
+      name: "Services",
+      sectionId: "services",
+      path: "/services",
+      current: false,
+    },
+    {
+      name: "Schedule",
+      sectionId: "schedule",
+      path: "/schedule",
+      current: false,
+    },
+    { name: "Contact", sectionId: "contact", path: "/contact", current: false },
   ],
   showNavigation: true,
 };
@@ -127,8 +131,8 @@ export const minimalistNavigation: {
   showNavigation: boolean;
 } = {
   navigationItems: [
-    { name: "Home", href: "/", current: true },
-    { name: "Contact", href: "/contact", current: false },
+    { name: "Home", sectionId: "home", path: "/", current: true },
+    { name: "Contact", sectionId: "contact", path: "/contact", current: false },
   ],
   showNavigation: true,
 };
@@ -138,38 +142,47 @@ export const fullNavigation: {
   showNavigation: boolean;
 } = {
   navigationItems: [
-    { name: "Home", href: "/", current: true },
-    { name: "About", href: "/about", current: false },
+    { name: "Home", sectionId: "home", path: "/", current: true },
+    { name: "About", sectionId: "about", path: "/about", current: false },
     {
       name: "Services",
-      href: "#",
+      sectionId: "services",
+      path: "/services",
       current: false,
       children: [
         {
           name: "Web Development",
-          href: "/services/web-development",
+          sectionId: "web-development",
+          path: "/services/web-development",
           current: false,
-          description: "Custom web development solutions",
           icon: LuFile,
+          description: "Custom web development solutions",
         },
         {
           name: "App Design",
-          href: "/services/app-design",
+          sectionId: "app-design",
+          path: "/services/app-design",
           current: false,
-          description: "Mobile and web application design",
           icon: LuFile,
+          description: "Mobile and web application design",
         },
         {
           name: "Consulting",
-          href: "/services/consulting",
+          sectionId: "consulting",
+          path: "/services/consulting",
           current: false,
-          description: "Expert technology consulting",
           icon: LuFile,
+          description: "Expert technology consulting",
         },
       ],
     },
-    { name: "Schedule", href: "/schedule", current: false },
-    { name: "Contact", href: "/contact", current: false },
+    {
+      name: "Schedule",
+      sectionId: "schedule",
+      path: "/schedule",
+      current: false,
+    },
+    { name: "Contact", sectionId: "contact", path: "/contact", current: false },
   ],
   showNavigation: true,
 };

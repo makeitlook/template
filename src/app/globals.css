@@ -94,3 +94,11 @@ html {
     --chart-5: 340 75% 55%;
   }
 }
+
+html.smooth-scroll {
+  scroll-behavior: smooth;
+}
+
+html {
+  scroll-behavior: smooth;
+}

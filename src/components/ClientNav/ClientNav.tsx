@@ -6,23 +6,21 @@ import ConfigurableNavigation, {
 import { useNavigationConfig, NavigationItem } from "@/config/navigation";
 import { SVGProps } from "react";
 
-// This function converts NavigationItem[] to NavItem[]
+// Convert NavigationItem[] to NavItem[]
 function convertNavigationItems(items: NavigationItem[]): NavItem[] {
   return items.map((item) => {
-    // Convert the icon type
     const convertedIcon = item.icon
-      ? // Cast the IconType to the expected React.FC<SVGProps<SVGSVGElement>> type
-        (item.icon as unknown as React.FC<React.SVGProps<SVGSVGElement>>)
+      ? (item.icon as unknown as React.FC<React.SVGProps<SVGSVGElement>>)
       : undefined;
 
     return {
       name: item.name,
-      href: item.href,
+      sectionId: item.sectionId,
+      path: item.path,
       current: item.current,
       disabled: item.disabled,
       icon: convertedIcon,
       description: item.description,
-      // Recursively convert children if they exist
       children: item.children
         ? convertNavigationItems(item.children)
         : undefined,
@@ -31,10 +29,7 @@ function convertNavigationItems(items: NavigationItem[]): NavItem[] {
 }
 
 export default function ClientNav() {
-  // Now we can use the React hook in a client component
   const { navigationItems, showNavigation } = useNavigationConfig();
-
-  // Convert navigation items to the expected type
   const convertedItems = convertNavigationItems(navigationItems);
 
   return (
@@ -43,6 +38,7 @@ export default function ClientNav() {
         navigationItems: convertedItems,
         showNavigation,
       }}
+      navMode="multi"
       variant="glass"
       glassMorphism={false}
       showThemeSwitcher={true}

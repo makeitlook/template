@@ -7,11 +7,14 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import ThemeSwitcher from "@/components/ThemeSwitcher/ThemeSwitcher";
+import { usePathname } from "next/navigation";
 
 // Type definitions
 export interface NavItem {
   name: string;
-  href: string;
+  href?: string;
+  path?: string;
+  sectionId?: string;
   current?: boolean;
   disabled?: boolean;
   children?: NavItem[];
@@ -26,7 +29,8 @@ export interface NavConfig {
 
 export interface NavProps {
   navigationConfig?: NavConfig;
-  items?: NavItem[]; // Alternative to using navigationConfig
+  items?: NavItem[];
+  navMode?: "single" | "multi";
   variant?: "standard" | "glass" | "solid";
   position?: "top" | "left";
   theme?: "light" | "dark" | "auto";
@@ -64,6 +68,7 @@ const PhoneIcon = LuPhone as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
 
 const ConfigurableNavigation: React.FC<NavProps> = ({
   navigationConfig,
+  navMode = "multi",
   items,
   variant = "standard",
   position = "top",
@@ -86,12 +91,47 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
   const navigationItems = navigationConfig?.navigationItems || items || [];
   const showNavigation = navigationConfig?.showNavigation !== false;
 
+  const pathname = usePathname();
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+
   // Determine theme colors
   const currentTheme = theme === "auto" ? resolvedTheme : theme;
   const isDark = currentTheme === "dark";
 
   // Function to close the mobile menu
   const closeMenu = () => setMobileMenuOpen(false);
+
+  useEffect(() => {
+    if (navMode !== "single") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    navigationItems.forEach((item) => {
+      if (item.sectionId) {
+        const el = document.getElementById(item.sectionId);
+        if (el) observer.observe(el);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, [navMode, navigationItems]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    document.documentElement.classList.toggle(
+      "smooth-scroll",
+      navMode === "single"
+    );
+  }, [navMode]);
 
   // Component mounting effect
   useEffect(() => {
@@ -239,6 +279,15 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
 
   // Desktop nav item renderer
   const renderNavItem = (item: NavItem) => {
+    const href =
+      navMode === "single" && item.sectionId
+        ? `#${item.sectionId}`
+        : item.path || item.href || "/";
+    const isActive =
+      navMode === "single"
+        ? activeSection === item.sectionId
+        : pathname === item.path;
+
     if (item.disabled) {
       return (
         <span
@@ -252,7 +301,6 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
     }
 
     if (item.children && item.children.length > 0) {
-      const isActive = item.children.some(({ current }) => current);
       return (
         <div key={item.name} className="relative self-center">
           <button
@@ -286,10 +334,16 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                   className="w-screen max-w-md flex-auto overflow-hidden rounded-3xl bg-neutral-dimmed-heavy text-sm leading-6 shadow-md ring-2 ring-divider-dimmed"
                 >
                   <div className="p-2">
-                    {item.children?.map((subItem, index) => {
-                      const Icon = subItem.icon as React.FC<
-                        React.SVGProps<SVGSVGElement>
-                      >;
+                    {item.children.map((subItem, index) => {
+                      const Icon = subItem.icon;
+                      const subHref =
+                        navMode === "single" && subItem.sectionId
+                          ? `#${subItem.sectionId}`
+                          : subItem.path || subItem.href || "/";
+                      const isSubActive =
+                        navMode === "single"
+                          ? activeSection === subItem.sectionId
+                          : pathname === subItem.path;
 
                       return (
                         <motion.div
@@ -303,7 +357,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                               "group relative flex gap-x-6 rounded-2xl p-4",
                               subItem.disabled
                                 ? "opacity-50 cursor-not-allowed"
-                                : subItem.current
+                                : isSubActive
                                 ? "bg-neutral-shadow"
                                 : "hover:bg-neutral"
                             )}
@@ -327,7 +381,8 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                               )}
                               {!subItem.disabled && (
                                 <Link
-                                  href={subItem.href}
+                                  href={subHref}
+                                  scroll={href.startsWith("#")}
                                   prefetch={false}
                                   onClick={() => {
                                     setDropdownOpen(null);
@@ -355,12 +410,13 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
       <Link
         prefetch={false}
         key={item.name}
-        href={item.href}
+        href={href}
+        scroll={href.startsWith("#")}
         className={classNames(
           variant === "glass"
             ? "text-md tracking-wide transition-colors font-medium"
             : styles.navItem.base,
-          item.current ? styles.navItem.active : styles.navItem.inactive
+          isActive ? styles.navItem.active : styles.navItem.inactive
         )}
         onClick={closeMenu}
       >
@@ -371,6 +427,15 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
 
   // Mobile nav item renderer with enhanced animations and styling
   const renderMobileNavItem = (item: NavItem, index: number) => {
+    const href =
+      navMode === "single" && item.sectionId
+        ? `#${item.sectionId}`
+        : item.path || item.href || "/";
+    const isActive =
+      navMode === "single"
+        ? activeSection === item.sectionId
+        : pathname === item.path;
+
     if (item.disabled) {
       return (
         <motion.div
@@ -393,6 +458,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
       );
     }
 
+    // Dropdowns
     if (item.children && item.children.length > 0) {
       return (
         <motion.div
@@ -451,47 +517,59 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
                       : "border-l-2 border-neutral-dimmed"
                   )}
                 >
-                  {item.children?.map((subItem, subIndex) => (
-                    <motion.div
-                      key={subItem.name}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2, delay: subIndex * 0.05 }}
-                    >
-                      <Link
-                        href={subItem.href}
-                        className={classNames(
-                          "group flex items-center rounded-lg p-3 text-sm font-medium transition-all duration-200",
-                          variant === "glass"
-                            ? "hover:bg-neutral/20 active:bg-neutral/30 text-text-secondary hover:text-text-primary"
-                            : "hover:bg-neutral-dimmed active:bg-neutral-shadow",
-                          subItem.current
-                            ? variant === "glass"
-                              ? "bg-neutral/30 text-text-primary"
-                              : styles.navItem.active
-                            : variant === "glass"
-                            ? "text-text-secondary"
-                            : styles.navItem.inactive,
-                          subItem.disabled && "opacity-50 cursor-not-allowed"
-                        )}
-                        onClick={closeMenu}
+                  {item.children.map((subItem, subIndex) => {
+                    const subHref =
+                      navMode === "single" && subItem.sectionId
+                        ? `#${subItem.sectionId}`
+                        : subItem.path || subItem.href || "/";
+                    const isSubActive =
+                      navMode === "single"
+                        ? activeSection === subItem.sectionId
+                        : pathname === subItem.path;
+
+                    return (
+                      <motion.div
+                        key={subItem.name}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: subIndex * 0.05 }}
                       >
-                        {subItem.icon && (
-                          <subItem.icon className="mr-3 h-4 w-4 text-text-tertiary group-hover:text-text-secondary transition-colors" />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <span>{subItem.name}</span>
-                          </div>
-                          {subItem.description && (
-                            <p className="mt-1 text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
-                              {subItem.description}
-                            </p>
+                        <Link
+                          href={subHref}
+                          scroll={href.startsWith("#")}
+                          className={classNames(
+                            "group flex items-center rounded-lg p-3 text-sm font-medium transition-all duration-200",
+                            variant === "glass"
+                              ? "hover:bg-neutral/20 active:bg-neutral/30 text-text-secondary hover:text-text-primary"
+                              : "hover:bg-neutral-dimmed active:bg-neutral-shadow",
+                            isSubActive
+                              ? variant === "glass"
+                                ? "bg-neutral/30 text-text-primary"
+                                : styles.navItem.active
+                              : variant === "glass"
+                              ? "text-text-secondary"
+                              : styles.navItem.inactive,
+                            subItem.disabled && "opacity-50 cursor-not-allowed"
                           )}
-                        </div>
-                      </Link>
-                    </motion.div>
-                  ))}
+                          onClick={closeMenu}
+                        >
+                          {subItem.icon && (
+                            <subItem.icon className="mr-3 h-4 w-4 text-text-tertiary group-hover:text-text-secondary transition-colors" />
+                          )}
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <span>{subItem.name}</span>
+                            </div>
+                            {subItem.description && (
+                              <p className="mt-1 text-xs text-text-tertiary group-hover:text-text-secondary transition-colors">
+                                {subItem.description}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
@@ -500,35 +578,7 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
       );
     }
 
-    // Regular mobile menu item with enhanced styling
-    if (variant === "glass") {
-      return (
-        <motion.div
-          key={item.name}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.3, delay: index * 0.1 }}
-        >
-          <Link
-            href={item.href}
-            className={classNames(
-              "flex items-center rounded-lg p-3 text-md font-medium transition-all duration-200",
-              "hover:bg-neutral/20 active:bg-neutral/30",
-              item.current
-                ? "bg-neutral/30 text-text-primary border-l-4 border-elements-primary-main"
-                : "text-text-secondary hover:text-text-primary"
-            )}
-            onClick={closeMenu}
-          >
-            {item.icon && (
-              <item.icon className="mr-3 h-5 w-5 text-text-tertiary" />
-            )}
-            {item.name}
-          </Link>
-        </motion.div>
-      );
-    }
-
+    // Standard link
     return (
       <motion.div
         key={item.name}
@@ -537,11 +587,20 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
         transition={{ duration: 0.3, delay: index * 0.1 }}
       >
         <Link
-          href={item.href}
+          href={href}
+          scroll={href.startsWith("#")}
           className={classNames(
             "flex items-center rounded-lg p-3 text-md font-medium transition-all duration-200 border-l-4",
-            "hover:bg-neutral-dimmed active:bg-neutral-shadow",
-            item.current ? styles.navItem.active : styles.navItem.inactive
+            variant === "glass"
+              ? "hover:bg-neutral/20 active:bg-neutral/30"
+              : "hover:bg-neutral-dimmed active:bg-neutral-shadow",
+            isActive
+              ? variant === "glass"
+                ? "bg-neutral/30 text-text-primary border-elements-primary-main"
+                : styles.navItem.active
+              : variant === "glass"
+              ? "text-text-secondary border-transparent"
+              : styles.navItem.inactive
           )}
           onClick={closeMenu}
         >
