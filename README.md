@@ -234,6 +234,89 @@ Let me know if you want this wrapped into the full `README.md` file too!
 - **Loader**: Customizable loading spinner using `react-loader-spinner`.
 - **Theme Switching**: Toggle between light and dark modes seamlessly.
 
+## 🧠 Usage Examples
+
+### 🔍 SEO Component
+
+Easily define Open Graph/Twitter/metadata tags per page:
+
+```tsx
+import SEO from "@/components/SEO";
+
+export default function AboutPage() {
+  return (
+    <>
+      <SEO
+        title="About Us"
+        description="Learn more about our mission and team."
+        url="https://yourdomain.com/about"
+        image="/images/about-og.jpg"
+        keywords={["About", "Company", "Team"]}
+      />
+      <section className="py-10">
+        <h1 className="text-3xl font-bold">About Us</h1>
+      </section>
+    </>
+  );
+}
+```
+
+---
+
+### 💡 IconWrapper
+
+Use any `react-icons` with consistent sizing and theming:
+
+```tsx
+import { FaGhost } from "react-icons/fa";
+import IconWrapper from "@/components/IconWrapper";
+
+<IconWrapper icon={FaGhost} size={64} className="text-elements-primary-main" />;
+```
+
+---
+
+### 🧭 Configurable Navigation
+
+Customise for multi-page or single-page apps:
+
+```tsx
+import ConfigurableNavigation from "@/components/Navbar/ConfigurableNavigation";
+
+<ConfigurableNavigation
+  navMode="single"
+  items={[
+    { name: "Home", sectionId: "home" },
+    { name: "About", sectionId: "about" },
+    { name: "Contact", sectionId: "contact" },
+  ]}
+  variant="glass"
+  logo={{
+    light: "/logo-light.png",
+    dark: "/logo-dark.png",
+  }}
+  cta={{ show: true, text: "Book Now", href: "/contact" }}
+/>;
+```
+
+> 🔄 Use `navMode="multi"` and `path` instead of `sectionId` for standard page routing.
+
+---
+
+### 🎬 AnimatedDiv
+
+Fade-in on scroll:
+
+```tsx
+import AnimatedDiv from "@/components/AnimatedDiv";
+
+<AnimatedDiv delay={0.2}>
+  <h2 className="text-2xl font-semibold">Welcome to our site</h2>
+</AnimatedDiv>;
+```
+
+---
+
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).

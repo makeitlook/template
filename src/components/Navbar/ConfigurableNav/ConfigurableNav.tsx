@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
 import ThemeSwitcher from "@/components/ThemeSwitcher/ThemeSwitcher";
 import { usePathname } from "next/navigation";
+import IconWrapper from "@/components/IconWrapper/IconWrapper";
 
 // Type definitions
 export interface NavItem {
@@ -57,14 +58,6 @@ export interface NavProps {
 function classNames(...classes: (string | false | undefined)[]): string {
   return classes.filter((c): c is string => Boolean(c)).join(" ");
 }
-
-// Icon components
-const ChevronIcon = LuChevronDown as unknown as React.FC<
-  React.SVGProps<SVGSVGElement>
->;
-const XIcon = LuX as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
-const MenuIcon = LuMenu as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
-const PhoneIcon = LuPhone as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
 
 const ConfigurableNavigation: React.FC<NavProps> = ({
   navigationConfig,
@@ -229,12 +222,19 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
     if (position === "top") {
       if (variant === "glass") {
         styles.wrapper = "fixed w-full top-0 z-50 sm:px-40 sm:pt-5";
+        // Add consistent height to prevent jumping
+        styles.container = glassMorphism
+          ? "backdrop-blur-md bg-card-background/70 border-b border-border-dimmed shadow-lg rounded-xl mx-auto px-6 min-h-[80px]" // Fixed height
+          : "backdrop-blur-md bg-card-background/70 border-b border-border-dimmed shadow-lg rounded-xl mx-auto px-6 min-h-[80px]"; // Fixed height
       } else {
         styles.wrapper = "fixed w-full top-0 z-50";
+        styles.container = transparent
+          ? "bg-transparent min-h-[80px]"
+          : "bg-neutral-dimmed-heavy min-h-[80px]"; // Fixed height
       }
       styles.navItem.base += " border-b-2";
     } else {
-      styles.wrapper = "fixed h-full left-0 top-0 z-50";
+      styles.wrapper = "fixed h-full left-0 top-0 z-50 w-64"; // Fixed width for side nav
       styles.navItem.base += " border-l-2";
     }
 
@@ -271,7 +271,9 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
         className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-elements-secondary-main hover:bg-elements-secondary-hover"
         onClick={closeMenu}
       >
-        {cta.phoneNumber && <PhoneIcon className="mr-2 h-4 w-4" />}
+        {cta.phoneNumber && (
+          <IconWrapper icon={LuPhone} className="mr-2 h-4 w-4" />
+        )}
         {cta.text || "Contact Us"}
       </Link>
     );
@@ -319,7 +321,10 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
               animate={{ rotate: dropdownOpen === item.name ? 180 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              <ChevronIcon className="ml-1 h-5 w-5" aria-hidden="true" />
+              <IconWrapper
+                icon={LuChevronDown}
+                className="px-1 w-7 h-7 text-text-tertiary"
+              />
             </motion.div>
           </button>
 
@@ -496,7 +501,10 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
               animate={{ rotate: dropdownOpen === item.name ? 180 : 0 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <ChevronIcon className="h-5 w-5 text-text-tertiary" />
+              <IconWrapper
+                icon={LuChevronDown}
+                className="px-1 w-7 h-7 text-text-tertiary"
+              />
             </motion.div>
           </button>
 
@@ -667,9 +675,9 @@ const ConfigurableNavigation: React.FC<NavProps> = ({
           transition={{ duration: 0.2 }}
         >
           {mobileMenuOpen ? (
-            <XIcon className="block h-6 w-6" aria-hidden="true" />
+            <IconWrapper icon={LuX} className="w-5 h-5 block" />
           ) : (
-            <MenuIcon className="block h-6 w-6" aria-hidden="true" />
+            <IconWrapper icon={LuMenu} className="block w-6 h-6" />
           )}
         </motion.div>
       </button>
