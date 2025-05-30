@@ -22,6 +22,7 @@ html:not([data-scroll="0"]) .navbar {
 html {
   --scroll-behavior: smooth !important;
   scroll-behavior: smooth !important;
+  overflow-y: scroll;
 }
 
 @layer utilities {
